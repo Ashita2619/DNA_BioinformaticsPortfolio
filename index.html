@@ -1,266 +1,240 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ashita Jawali | Bio-Interactive Dossier</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;500&display=swap" rel="stylesheet">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <style>
-    :root {
-      --bg: #010205;
-      --panel: rgba(2, 5, 12, 0.98);
-      --accent: #5e9eff;
-      --accent2: #00ffaa;
-      --text: #ffffff;
-    }
+<title>Ashita Jawali | Bioinformatics Portfolio</title>
 
-    body { 
-      margin: 0; background: var(--bg); color: var(--text); 
-      font-family: 'JetBrains Mono', monospace; 
-      overflow: hidden;
-      cursor: crosshair;
-    }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
-    /* Terminal Overlay */
-    #crt-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none; z-index: 1000;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
-                  linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-      background-size: 100% 3px, 3px 100%;
-    }
+<style>
+body { margin:0; overflow:hidden; background:#010205; font-family:monospace; color:white; }
 
-    #ui-layer {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      display: flex; align-items: center; justify-content: center;
-      z-index: 100; pointer-events: none;
-    }
+#info-panel{
+position:absolute; right:40px; top:50%; transform:translateY(-50%);
+width:420px; background:rgba(0,0,0,0.9); padding:25px;
+border:1px solid #00ffaa; display:none;
+}
 
-    #click-prompt {
-      color: var(--accent2); letter-spacing: 5px; font-size: 14px;
-      text-transform: uppercase; text-shadow: 0 0 15px var(--accent2);
-      animation: blink 1.5s infinite;
-    }
+h2{color:#00ffaa;}
+.tag{border:1px solid #5e9eff; padding:2px 6px; margin:3px; display:inline-block;}
+.btn{display:inline-block; border:1px solid #333; padding:6px 10px; margin:5px; color:white; text-decoration:none;}
+.btn:hover{background:#00ffaa; color:black;}
 
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.1; } }
-
-    #info-panel {
-      position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
-      width: 480px; max-height: 85vh; overflow-y: auto;
-      background: var(--panel); border: 1px solid rgba(0, 255, 170, 0.2);
-      border-radius: 4px; padding: 40px; z-index: 2000;
-      box-shadow: 0 0 40px rgba(0,0,0,1); display: none;
-    }
-
-    h2 { color: var(--accent2); font-size: 18px; border-left: 3px solid var(--accent2); padding-left: 15px; margin-bottom: 25px; }
-    .label { color: var(--accent); font-size: 10px; font-weight: bold; margin-top: 20px; display: block; opacity: 0.7; }
-    .text { font-size: 13px; line-height: 1.7; color: #cbd5e1; margin: 5px 0; }
-    .tag { display: inline-block; padding: 2px 8px; background: rgba(94, 158, 255, 0.1); border: 1px solid var(--accent); border-radius: 4px; font-size: 10px; margin: 3px; }
-    
-    .btn-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-    .btn { 
-      padding: 10px; text-decoration: none; font-size: 10px; text-align: center; border: 1px solid #334155; 
-      color: white; transition: 0.3s; pointer-events: auto;
-    }
-    .btn:hover { background: var(--accent2); color: black; border-color: var(--accent2); }
-    .close-btn { float: right; cursor: pointer; color: var(--accent2); font-size: 10px; pointer-events: auto; }
-    
-    ::-webkit-scrollbar { width: 3px; }
-    ::-webkit-scrollbar-thumb { background: var(--accent2); }
-  </style>
+#boot{
+position:fixed; width:100%; height:100%;
+display:flex; align-items:center; justify-content:center;
+background:#fff; color:black; cursor:pointer; z-index:10;
+flex-direction:column;
+}
+</style>
 </head>
 
 <body>
-  <div id="crt-overlay"></div>
-  <div id="ui-layer">
-    <div id="click-prompt">TERMINAL STANDBY // CLICK TO BOOT</div>
-  </div>
 
-  <div id="info-panel">
-    <span class="close-btn" onclick="closePanel()">[ CLOSE ]</span>
-    <div id="content-area"></div>
-  </div>
+<div id="boot">
+<h2>Click to Begin</h2>
+</div>
 
-  <script>
-    let scene, camera, renderer, dna, rain, workspace;
-    let raycaster = new THREE.Raycaster();
-    let mouse = new THREE.Vector2();
-    let isLive = false;
+<div id="info-panel">
+<div id="content"></div>
+</div>
 
-    // CONTENT DATA - EXACTLY AS PER YOUR PORTFOLIO
-    const nodes = [
-      {
-        id: "BIO", title: "IDENTITY: ASHITA JAWALI",
-        content: `
-          <p class="text"><strong>Bioinformatician | MS Quantitative Biology @ Carnegie Mellon</strong></p>
-          <p class="text">Bridging raw genomic sequences with clinical health outcomes. Specialized in NGS data analysis and computational biology pipelines.</p>
-          <div class="btn-box">
-            <a href="https://github.com/Ashita2619" target="_blank" class="btn">GITHUB</a>
-            <a href="https://linkedin.com/in/ashitajawali" target="_blank" class="btn">LINKEDIN</a>
-          </div>
-        `
-      },
-      {
-        id: "EDU", title: "ACADEMIC LINEAGE",
-        content: `
-          <span class="label">GRADUATE</span>
-          <p class="text">Carnegie Mellon University (2022 - 2023)<br>MS in Quantitative Biology & Bioinformatics</p>
-          <span class="label">UNDERGRADUATE</span>
-          <p class="text">B.M.S. College of Engineering (2018 - 2022)<br>BE in Biotechnology | GPA: 8.56/10</p>
-          <span class="label">GRANTS</span>
-          <p class="text">Research Hub Grant Recipient (2025-2026)</p>
-        `
-      },
-      {
-        id: "ML", title: "GENOMIC MACHINE LEARNING",
-        content: `
-          <span class="label">LUNG CANCER BIOMARKERS</span>
-          <p class="text">Integrated TCGA genomic datasets using mRMR feature selection. Trained SVM/RF models to predict diagnostic biomarkers with 0.85 F1-score.</p>
-          <span class="label">NEXTSS PIPELINE</span>
-          <p class="text">Deep Learning tool built in PyTorch for high-accuracy Transcription Start Site (TSS) annotation in non-model organisms.</p>
-        `
-      },
-      {
-        id: "PUB", title: "STATISTICAL RESEARCH",
-        content: `
-          <span class="label">ENVIRONMENTAL MICROPLASTICS</span>
-          <p class="text">Published research on detection methodologies for nanoplastics in environmental water samples (2021).</p>
-          <span class="label">COVID-19 TRENDS</span>
-          <p class="text">Statistical analysis of vaccination rates vs. infection waves using R/Bioconductor.</p>
-        `
-      },
-      {
-        id: "EXP", title: "PROFESSIONAL LOG",
-        content: `
-          <span class="label">KDHE (KANSAS PUBLIC HEALTH)</span>
-          <p class="text">Lead Bioinformatician. Building production-grade Nextflow pipelines for infectious disease surveillance.</p>
-          <span class="label">BITGENOME</span>
-          <p class="text">Computational Biology Mentor. Teaching Genome Assembly and Python for Bio.</p>
-        `
-      },
-      {
-        id: "STACK", title: "TECHNICAL GENOME",
-        content: `
-          <div style="margin-top:10px;">
-            <span class="tag">Python</span><span class="tag">R</span><span class="tag">SQL</span><span class="tag">Nextflow</span>
-            <span class="tag">Docker</span><span class="tag">Git</span><span class="tag">RNA-Seq</span><span class="tag">Variant Calling</span>
-            <span class="tag">AutoDock Vina</span><span class="tag">Linux/Bash</span>
-          </div>
-          <a href="AshitaJawali_CV.pdf" target="_blank" class="btn" style="display:block; margin-top:20px;">DOWNLOAD TECHNICAL CV</a>
-        `
-      }
-    ];
+<script>
+let scene, camera, renderer;
+let dnaGroup, deskGroup;
+let raycaster = new THREE.Raycaster();
+let mouse = new THREE.Vector2();
+let INTERSECTED = null;
 
-    function init() {
-      scene = new THREE.Scene();
-      scene.fog = new THREE.Fog(0x010205, 1, 50);
-      camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      document.body.appendChild(renderer.domElement);
+/* ========= DATA ========= */
+const nodes = [
+{
+title:"ABOUT",
+content:`<h2>About</h2>
+<p>Bioinformatician working on multi-omics + ML.</p>
+<a class="btn" href="https://github.com/Ashita2619" target="_blank">GitHub</a>`
+},
+{
+title:"PROJECTS",
+content:`<h2>Projects</h2>
+<p>Lung cancer biomarkers, NexTSS, ML pipelines</p>`
+},
+{
+title:"EXPERIENCE",
+content:`<h2>Experience</h2>
+<p>KDHE Bioinformatician, BitGenome mentor</p>`
+},
+{
+title:"STACK",
+content:`<h2>Stack</h2>
+<span class="tag">Python</span><span class="tag">R</span><span class="tag">Nextflow</span>`
+}
+];
 
-      // --- WORKSPACE ---
-      workspace = new THREE.Group();
-      const mon = new THREE.Mesh(new THREE.BoxGeometry(4, 2.5, 0.1), new THREE.MeshPhongMaterial({color: 0x050505}));
-      const screen = new THREE.Mesh(new THREE.PlaneGeometry(3.8, 2.3), new THREE.MeshBasicMaterial({color: 0x00ffaa, transparent: true, opacity: 0.15}));
-      screen.position.z = 0.06;
-      const desk = new THREE.Mesh(new THREE.BoxGeometry(10, 0.1, 5), new THREE.MeshPhongMaterial({color: 0x080808}));
-      desk.position.y = -2;
-      const figure = new THREE.Mesh(new THREE.CapsuleGeometry(0.4, 1), new THREE.MeshPhongMaterial({color: 0x000000}));
-      figure.position.set(0, -1, 3);
-      workspace.add(mon, screen, desk, figure);
-      scene.add(workspace);
+/* ========= INIT ========= */
+function init(){
+scene = new THREE.Scene();
 
-      // --- DNA ---
-      dna = new THREE.Group();
-      dna.visible = false;
-      const twist = 0.4;
-      for(let i=0; i<12; i++) {
-        const item = nodes[i % nodes.length];
-        const y = i * 1.5 - 8;
-        const x1 = Math.cos(i*twist) * 4;
-        const z1 = Math.sin(i*twist) * 4;
-        const x2 = Math.cos(i*twist + Math.PI) * 4;
-        const z2 = Math.sin(i*twist + Math.PI) * 4;
+camera = new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1000);
+camera.position.set(0,2,8);
 
-        const b1 = new THREE.Mesh(new THREE.SphereGeometry(0.35, 32, 32), new THREE.MeshPhongMaterial({color: 0x5e9eff, emissive: 0x112244}));
-        b1.position.set(x1, y, z1); b1.userData = item;
-        const b2 = new THREE.Mesh(new THREE.SphereGeometry(0.35, 32, 32), new THREE.MeshPhongMaterial({color: 0x00ffaa, emissive: 0x114422}));
-        b2.position.set(x2, y, z2); b2.userData = item;
-        
-        const link = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 8), new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.1}));
-        link.rotation.z = Math.PI/2; link.rotation.y = -i*twist; link.position.y = y;
+renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+document.body.appendChild(renderer.domElement);
 
-        dna.add(b1, b2, link);
-      }
-      scene.add(dna);
+/* LIGHT */
+scene.add(new THREE.AmbientLight(0xffffff,0.6));
+const light = new THREE.PointLight(0x00ffaa,2);
+light.position.set(5,5,5);
+scene.add(light);
 
-      // --- RAIN ---
-      rain = new THREE.Group();
-      rain.visible = false;
-      const ems = ['🦠','🧫','🧬','🧪','🔬'];
-      ems.forEach(e => {
-        const can = document.createElement('canvas'); can.width=64; can.height=64;
-        const ctx = can.getContext('2d'); ctx.font='30px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(e, 32, 32);
-        const tex = new THREE.CanvasTexture(can);
-        for(let i=0; i<10; i++){
-          const s = new THREE.Sprite(new THREE.SpriteMaterial({map: tex, transparent: true, opacity: 0.3}));
-          s.position.set(Math.random()*40-20, Math.random()*40-20, Math.random()*20-10);
-          s.userData.speed = 0.02 + Math.random()*0.03;
-          rain.add(s);
-        }
-      });
-      scene.add(rain);
+/* ===== DESK (INTRO SCENE) ===== */
+deskGroup = new THREE.Group();
 
-      scene.add(new THREE.AmbientLight(0x404040, 2));
-      const p = new THREE.PointLight(0x5e9eff, 2); p.position.set(0, 2, 5); scene.add(p);
+// table
+const table = new THREE.Mesh(
+new THREE.BoxGeometry(6,0.3,3),
+new THREE.MeshStandardMaterial({color:0x222222})
+);
+deskGroup.add(table);
 
-      camera.position.z = 8;
-      window.addEventListener('click', onClick);
-      window.addEventListener('mousemove', (e) => {
-        mouse.x = (e.clientX/window.innerWidth)*2-1;
-        mouse.y = -(e.clientY/window.innerHeight)*2+1;
-      });
-      animate();
-    }
+// monitor
+const monitor = new THREE.Mesh(
+new THREE.BoxGeometry(1.5,1,0.1),
+new THREE.MeshStandardMaterial({color:0x555555})
+);
+monitor.position.set(0,0.8,0);
+deskGroup.add(monitor);
 
-    function onClick() {
-      if(!isLive) {
-        isLive = true;
-        document.getElementById('click-prompt').style.display = 'none';
-        gsap.to(camera.position, { z: 0.5, duration: 2, ease: "expo.inOut", onComplete: () => {
-          workspace.visible = false;
-          dna.visible = true;
-          rain.visible = true;
-          gsap.to(camera.position, { z: 18, duration: 1.5, ease: "power3.out" });
-        }});
-      } else {
-        raycaster.setFromCamera(mouse, camera);
-        const hit = raycaster.intersectObjects(dna.children).find(h => h.object.userData.title);
-        if(hit) {
-          const p = document.getElementById('info-panel');
-          p.style.display = 'block';
-          document.getElementById('content-area').innerHTML = `<h2>${hit.object.userData.title}</h2>${hit.object.userData.content}`;
-          gsap.fromTo(p, {opacity: 0, x: 50}, {opacity: 1, x: 0, duration: 0.4});
-        }
-      }
-    }
+scene.add(deskGroup);
 
-    function closePanel() { document.getElementById('info-panel').style.display = 'none'; }
+/* ===== DNA ===== */
+dnaGroup = new THREE.Group();
 
-    function animate() {
-      requestAnimationFrame(animate);
-      if(dna.visible) {
-        dna.rotation.y += 0.002;
-        rain.children.forEach(r => { r.position.y -= r.userData.speed; if(r.position.y < -20) r.position.y = 20; });
-      }
-      renderer.render(scene, camera);
-    }
+const radius = 2;
+const height = 10;
 
-    init();
-  </script>
+for(let i=0;i<30;i++){
+let angle = i*0.4;
+let y = (i/30)*height - height/2;
+
+let left = new THREE.Mesh(
+new THREE.SphereGeometry(0.15),
+new THREE.MeshStandardMaterial({color:0x5e9eff})
+);
+
+let right = new THREE.Mesh(
+new THREE.SphereGeometry(0.15),
+new THREE.MeshStandardMaterial({color:0x00ffaa})
+);
+
+left.position.set(Math.cos(angle)*radius,y,Math.sin(angle)*radius);
+right.position.set(Math.cos(angle+Math.PI)*radius,y,Math.sin(angle+Math.PI)*radius);
+
+left.userData = nodes[i % nodes.length];
+right.userData = nodes[i % nodes.length];
+
+// bond
+const bondGeom = new THREE.BufferGeometry().setFromPoints([
+left.position, right.position
+]);
+const bond = new THREE.Line(bondGeom, new THREE.LineBasicMaterial({color:0xffffff}));
+
+dnaGroup.add(left, right, bond);
+}
+
+dnaGroup.visible = false;
+scene.add(dnaGroup);
+
+animate();
+}
+
+/* ========= BOOT CLICK ========= */
+document.getElementById("boot").onclick = () => {
+
+gsap.to("#boot",{opacity:0,duration:0.5,onComplete:()=>{
+document.getElementById("boot").style.display="none";
+}});
+
+// move camera through monitor
+gsap.to(camera.position,{
+z:2, duration:1.5, ease:"power2.inOut",
+onComplete:()=>{
+deskGroup.visible=false;
+dnaGroup.visible=true;
+
+gsap.to(camera.position,{z:6,duration:1});
+}
+});
+
+};
+
+/* ========= INTERACTION ========= */
+window.addEventListener("mousemove",e=>{
+mouse.x = (e.clientX/innerWidth)*2-1;
+mouse.y = -(e.clientY/innerHeight)*2+1;
+});
+
+window.addEventListener("click",()=>{
+
+raycaster.setFromCamera(mouse,camera);
+let intersects = raycaster.intersectObjects(dnaGroup.children);
+
+if(intersects.length){
+let obj = intersects[0].object;
+
+if(obj.userData){
+document.getElementById("info-panel").style.display="block";
+document.getElementById("content").innerHTML = obj.userData.content;
+
+// camera zoom to node
+gsap.to(camera.position,{
+x:obj.position.x,
+y:obj.position.y,
+z:obj.position.z + 2,
+duration:1
+});
+}
+}
+
+});
+
+/* ========= HOVER ========= */
+function hoverEffect(){
+raycaster.setFromCamera(mouse,camera);
+let intersects = raycaster.intersectObjects(dnaGroup.children);
+
+if(INTERSECTED) INTERSECTED.material.emissive?.set(0x000000);
+
+if(intersects.length){
+INTERSECTED = intersects[0].object;
+if(INTERSECTED.material.emissive)
+INTERSECTED.material.emissive.set(0x222222);
+}
+}
+
+/* ========= ANIMATE ========= */
+function animate(){
+requestAnimationFrame(animate);
+
+hoverEffect();
+
+dnaGroup.rotation.y += 0.003;
+
+renderer.render(scene,camera);
+}
+
+/* ========= RESIZE ========= */
+window.addEventListener("resize",()=>{
+camera.aspect = innerWidth/innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(innerWidth,innerHeight);
+});
+
+init();
+</script>
 </body>
 </html>

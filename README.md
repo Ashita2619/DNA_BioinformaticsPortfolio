@@ -17,7 +17,7 @@ Users can:
 •🦠 Hover over nodes to change cursor interaction
 •🧬 Click nodes to open detailed information panels
 
-Explore sections like:
+Explore sections like: </br>
 •About Me </br>
 •Research Projects </br>
 •Experience </br> 

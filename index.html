@@ -9,26 +9,23 @@
   <style>
     :root {
       --bg: #050a14;
-      --panel: rgba(11, 18, 32, 0.92);
+      --panel: rgba(11, 18, 32, 0.94);
       --accent: #7aa2ff;
       --accent2: #7affd0;
       --text: #e9eefc;
       --muted: #b7c3e6;
     }
 
-    /* CURSOR DEFINITIONS */
     body { 
       margin: 0; 
       background: var(--bg); 
       color: var(--text); 
-      font-family: 'Segoe UI', sans-serif; 
+      font-family: 'Segoe UI', Tahoma, sans-serif; 
       overflow: hidden;
-      /* Default: Bacteria 🦠 */
       cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" style="font-size:24px"><text y="20">🦠</text></svg>'), auto;
     }
 
     .dna-cursor {
-      /* Hover: DNA 🧬 */
       cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" style="font-size:24px"><text y="20">🧬</text></svg>'), pointer !important;
     }
 
@@ -42,7 +39,7 @@
       left: 40px;
       top: 50%;
       transform: translateY(-50%);
-      width: 450px;
+      width: 480px;
       max-height: 85vh;
       overflow-y: auto;
       background: var(--panel);
@@ -51,32 +48,25 @@
       border-radius: 24px;
       padding: 35px;
       z-index: 10;
-      box-shadow: 0 0 60px rgba(0,0,0,0.7);
-      transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+      box-shadow: 0 0 60px rgba(0,0,0,0.8);
+      transition: all 0.4s ease-out;
     }
 
     .hidden { opacity: 0; transform: translateY(-40%) scale(0.95); pointer-events: none; }
 
-    #panel-content img {
+    .profile-img {
       width: 110px; height: 110px; border-radius: 22px; 
       border: 2px solid var(--accent); margin-bottom: 15px;
     }
 
-    h2 { color: var(--accent2); margin: 0 0 15px; font-size: 22px; font-weight: 900; letter-spacing: 1px; }
-    .section-title { color: var(--accent); font-weight: 800; font-size: 14px; margin-top: 15px; display: block; text-transform: uppercase; }
-    .muted { color: var(--muted); font-size: 14.5px; line-height: 1.6; }
+    h2 { color: var(--accent2); margin: 0 0 15px; font-size: 24px; font-weight: 900; letter-spacing: 1px; border-bottom: 1px solid rgba(122, 255, 208, 0.2); padding-bottom: 10px; }
+    .section-title { color: var(--accent); font-weight: 800; font-size: 13px; margin-top: 18px; display: block; text-transform: uppercase; letter-spacing: 1px;}
+    .muted { color: var(--muted); font-size: 14.5px; line-height: 1.6; margin: 10px 0; }
     
     .resume-btn {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 12px 24px;
-      background: var(--accent2);
-      color: #050a14;
-      text-decoration: none;
-      font-weight: 800;
-      border-radius: 12px;
-      text-transform: uppercase;
-      font-size: 13px;
+      display: inline-block; margin-top: 20px; padding: 12px 24px; background: var(--accent2);
+      color: #050a14; text-decoration: none; font-weight: 800; border-radius: 12px;
+      text-transform: uppercase; font-size: 12px; transition: 0.3s;
     }
 
     .instruction {
@@ -85,55 +75,71 @@
       z-index: 5; pointer-events: none; opacity: 0.6; font-size: 11px;
     }
 
-    .close-btn {
-      position: absolute; top: 20px; right: 20px;
-      background: rgba(255,255,255,0.1); border: none;
-      color: var(--text); padding: 5px 12px; border-radius: 8px; cursor: pointer;
-    }
+    .close-btn { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: var(--text); padding: 5px 12px; border-radius: 8px; cursor: pointer; }
+    
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: var(--accent2); border-radius: 10px; }
   </style>
 </head>
 
 <body>
   <div id="canvas-container"></div>
-  <div class="instruction">ENVIRONMENT LOADED // SCANNING MICROBIAL DRIFT</div>
+  <div class="instruction">>>> BIOMETRIC DATA DETECTED // INTERACT WITH HELIX <<<</div>
 
   <div id="info-panel" class="hidden">
-    <button class="close-btn" onclick="closePanel()">CLOSE [X]</button>
+    <button class="close-btn" onclick="closePanel()">[X] CLOSE</button>
     <div id="panel-content"></div>
   </div>
 
   <script>
-    let scene, camera, renderer, dnaGroup, raycaster, mouse;
-    let particles, particleCount = 150;
+    let scene, camera, renderer, dnaGroup, particles;
+    let raycaster, mouse;
     const infoPanel = document.getElementById('info-panel');
     const content = document.getElementById('panel-content');
 
     const dnaData = [
       {
-        title: "01. GENOMIC IDENTITY",
-        body: `<img src="Ashita_Photo.png" alt="Ashita Jawali"><p class="muted"><strong>Ashita Jawali</strong><br>Bioinformatician | Topeka, Kansas.<br><br>Bridging the gap between raw biological sequences and clinical insights through computational power.</p>`
+        title: "SYSTEM USER: ASHITA JAWALI",
+        body: `<img src="Ashita_Photo.png" class="profile-img"><p class="muted"><strong>Bioinformatician</strong><br>Topeka, Kansas, USA<br><br>Dedicated to solving complex biological puzzles using high-throughput sequencing and ML.</p><span class="section-title">CONTACT DECODE</span><p class="muted">Email: ashita.bt18@bmsce.ac.in<br>GitHub: @Ashita2619</p>`
       },
       {
-        title: "02. FULL CURRICULUM VITAE",
-        body: `<p class="muted">Access the complete technical dossier including full academic records and project methodology.</p><a href="AshitaJawali_CV.pdf" target="_blank" class="resume-btn">Download Resume (PDF)</a>`
+        title: "EXPERIENCE LOGS",
+        body: `<span class="section-title">KDHE (2024 - Present)</span><p class="muted">Bioinformatician. Designing NGS pipelines for pathogen surveillance.</p><span class="section-title">BITGENOME (2026 - Present)</span><p class="muted">Computational Biologist. Mentoring in practical pipeline development.</p>`
       },
       {
-        title: "03. PROFESSIONAL NODES",
-        body: `<div class="muted"><strong>Bioinformatician @ KDHE</strong> (2024-Present)<br>Leading NGS pipeline design for pathogen surveillance.<br><br><strong>Computational Biologist @ BitGenome</strong><br>Mentor for genomic data analysis.</div>`
+        title: "TECHNICAL GENOME",
+        body: `<span class="section-title">LANGUAGES</span><p class="muted">Python, R, SQL, Bash, Linux shell scripting.</p><span class="section-title">COMPUTATIONAL BIOLOGY</span><p class="muted">Nextflow, Docker, Git, Variant Calling, RNA-seq, Molecular Docking.</p>`
       },
       {
-        title: "04. TECHNICAL STACK",
-        body: `<span class="section-title">Computing</span><p class="muted">Python, R, SQL, Bash, Linux, Git</p><span class="section-title">Bioinformatics</span><p class="muted">Nextflow, Docker, RNA-seq, Variant Calling</p>`
+        title: "ACADEMIC SEQUENCE",
+        body: `<span class="section-title">CARNEGIE MELLON UNIVERSITY</span><p class="muted">M.S. in Quantitative Biology and Bioinformatics (2023).</p><span class="section-title">B.M.S. COLLEGE OF ENGINEERING</span><p class="muted">Bachelor of Engineering in Biotechnology (2022).<br>GPA: 8.56 / 10</p>`
       },
       {
-        title: "05. ACADEMIC SEQUENCE",
-        body: `<p class="muted"><strong>Master of Science (2023)</strong><br>Carnegie Mellon University<br><br><strong>Bachelor of Engineering (2022)</strong><br>B.M.S. College of Engineering</p>`
+        title: "PUBLISHED RESEARCH",
+        body: `<span class="section-title">PEER REVIEWED</span><p class="muted">Asian Journal of Biotech (2021). Micro and Nanoplastics detection.</p><span class="section-title">ABSTRACTS & GRANTS</span><p class="muted">• ISMB 2026<br>• ISCB-UK 2026<br>• Research Hub Grant Proposal</p>`
       },
       {
-        title: "06. RESEARCH & ABSTRACTS",
-        body: `<p class="muted">• Detection of Nanoplastics (2021)<br>• ISMB 2026 Abstract Submission<br>• ISCB-UK 2026 Poster</p>`
+        title: "MEMBERSHIPS & CV",
+        body: `<span class="section-title">AFFILIATIONS</span><p class="muted">ISCB Member</p><span class="section-title">OFFICIAL DOCUMENT</span><p class="muted">Download the full verified curriculum vitae.</p><a href="AshitaJawali_CV.pdf" target="_blank" class="resume-btn">Download Resume</a>`
       }
     ];
+
+    function createPathogenTexture() {
+      // Create a canvas to draw a organic "microbe" shape
+      const canvas = document.createElement('canvas');
+      canvas.width = 64; canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      gradient.addColorStop(0, 'rgba(122, 255, 208, 1)');
+      gradient.addColorStop(0.4, 'rgba(122, 255, 208, 0.3)');
+      gradient.addColorStop(1, 'rgba(122, 255, 208, 0)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      // Draw a slightly irregular circle to look like a pathogen
+      ctx.arc(32, 32, 24, 0, Math.PI * 2);
+      ctx.fill();
+      return new THREE.CanvasTexture(canvas);
+    }
 
     function init() {
       scene = new THREE.Scene();
@@ -145,74 +151,51 @@
       raycaster = new THREE.Raycaster();
       mouse = new THREE.Vector2();
 
-      // 1. CREATE MICROBIAL RAIN
-      const particleGeo = new THREE.BufferGeometry();
-      const posArray = new Float32Array(particleCount * 3);
-
-      for(let i = 0; i < particleCount * 3; i++) {
-        posArray[i] = (Math.random() - 0.5) * 40; // Spread them out
-      }
-      particleGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+      // 1. Pathogen Rain (The updated bio-particles)
+      const pCount = 250;
+      const pGeo = new THREE.BufferGeometry();
+      const pPos = new Float32Array(pCount * 3);
+      for(let i=0; i<pCount*3; i++) pPos[i] = (Math.random()-0.5)*50;
+      pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
       
-      const particleMat = new THREE.PointsMaterial({
-        size: 0.15,
-        color: 0x7affd0,
-        transparent: true,
-        opacity: 0.5,
-        blending: THREE.AdditiveBlending
-      });
-
-      particles = new THREE.Points(particleGeo, particleMat);
+      particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ 
+        map: createPathogenTexture(), 
+        size: 0.6, 
+        transparent: true, 
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      }));
       scene.add(particles);
 
-      // 2. CREATE DNA HELIX
+      // 2. DNA Helix
       dnaGroup = new THREE.Group();
-      const numPoints = 12; 
-      const twist = 0.5;
-      const stepHeight = 1.1;
-
-      for (let i = 0; i < numPoints; i++) {
+      const numSteps = 12; const twist = 0.5;
+      for (let i = 0; i < numSteps; i++) {
         const sphereGeo = new THREE.SphereGeometry(0.38, 32, 32);
-        const dataIndex = i % dnaData.length;
-
+        const data = dnaData[i % dnaData.length];
         const s1 = new THREE.Mesh(sphereGeo, new THREE.MeshPhongMaterial({ color: 0x7aa2ff, emissive: 0x0a1a33 }));
-        s1.position.set(Math.cos(i * twist) * 4.5, i * stepHeight - 6, Math.sin(i * twist) * 4.5);
-        s1.userData = dnaData[dataIndex]; 
-        dnaGroup.add(s1);
-
+        s1.position.set(Math.cos(i*twist)*4.5, i*1.3-8, Math.sin(i*twist)*4.5);
+        s1.userData = data; dnaGroup.add(s1);
         const s2 = new THREE.Mesh(sphereGeo, new THREE.MeshPhongMaterial({ color: 0x7affd0, emissive: 0x0a331a }));
-        s2.position.set(Math.cos(i * twist + Math.PI) * 4.5, i * stepHeight - 6, Math.sin(i * twist + Math.PI) * 4.5);
-        s2.userData = dnaData[dataIndex];
-        dnaGroup.add(s2);
-
-        const cylinder = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.04, 0.04, 9, 8),
-          new THREE.MeshPhongMaterial({ color: 0xffffff, transparent: true, opacity: 0.1 })
-        );
-        cylinder.position.set(0, i * stepHeight - 6, 0);
-        cylinder.rotation.z = Math.PI / 2;
-        cylinder.rotation.y = -i * twist;
-        dnaGroup.add(cylinder);
+        s2.position.set(Math.cos(i*twist + Math.PI)*4.5, i*1.3-8, Math.sin(i*twist + Math.PI)*4.5);
+        s2.userData = data; dnaGroup.add(s2);
+        const cyl = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 9, 8), new THREE.MeshPhongMaterial({ color: 0xffffff, transparent: true, opacity: 0.1 }));
+        cyl.position.set(0, i*1.3-8, 0); cyl.rotation.z = Math.PI/2; cyl.rotation.y = -i*twist;
+        dnaGroup.add(cyl);
       }
-
       scene.add(dnaGroup);
       
-      const pLight = new THREE.PointLight(0xffffff, 1.5, 100);
-      pLight.position.set(10, 10, 10);
-      scene.add(pLight);
+      const pLight = new THREE.PointLight(0xffffff, 1.5, 100); pLight.position.set(10, 10, 10); scene.add(pLight);
       scene.add(new THREE.AmbientLight(0x404040));
-
-      camera.position.z = 15;
+      camera.position.z = 16;
 
       window.addEventListener('mousedown', () => {
         raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(dnaGroup.children);
-        if (intersects.length > 0) {
-          const data = intersects[0].object.userData;
-          if (data.title) {
-            infoPanel.classList.remove('hidden');
-            content.innerHTML = `<h2>${data.title}</h2>${data.body}`;
-          }
+        const hit = raycaster.intersectObjects(dnaGroup.children);
+        if (hit.length > 0 && hit[0].object.userData.title) {
+          infoPanel.classList.remove('hidden');
+          content.innerHTML = `<h2>${hit[0].object.userData.title}</h2>${hit[0].object.userData.body}`;
         }
       });
 
@@ -228,36 +211,25 @@
 
     function animate() {
       requestAnimationFrame(animate);
-      
-      // Rotate DNA
       dnaGroup.rotation.y += 0.003;
-
-      // Animate Microbial Rain (Falling)
-      const positions = particles.geometry.attributes.position.array;
-      for (let i = 1; i < positions.length; i += 3) {
-        positions[i] -= 0.02; // Fall speed
-        if (positions[i] < -20) positions[i] = 20; // Reset to top
+      
+      const pos = particles.geometry.attributes.position.array;
+      for (let i = 0; i < pos.length; i += 3) {
+        // Falling motion
+        pos[i+1] -= 0.02; 
+        // Side-to-side drift (wobble)
+        pos[i] += Math.sin(Date.now() * 0.001 + i) * 0.005; 
+        
+        if (pos[i+1] < -25) pos[i+1] = 25;
       }
       particles.geometry.attributes.position.needsUpdate = true;
-      particles.rotation.y += 0.001; // Slight swirl
-      
-      // Cursor Logic
+
       raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(dnaGroup.children);
-      if (intersects.length > 0) {
-        document.body.classList.add('dna-cursor');
-      } else {
-        document.body.classList.remove('dna-cursor');
-      }
+      const hit = raycaster.intersectObjects(dnaGroup.children);
+      document.body.classList.toggle('dna-cursor', hit.length > 0);
 
       renderer.render(scene, camera);
     }
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
 
     init();
   </script>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ashita Jawali | Bio-Interactive Dossier</title>
+  <title>Ashita Jawali | Bioinformatician</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;500&display=swap" rel="stylesheet">
@@ -21,10 +21,8 @@
       margin: 0; background: var(--bg); color: var(--text); 
       font-family: 'JetBrains Mono', monospace; 
       overflow: hidden;
-      cursor: crosshair;
     }
 
-    /* Terminal Overlay */
     #crt-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none; z-index: 1000;
@@ -33,192 +31,142 @@
       background-size: 100% 3px, 3px 100%;
     }
 
-    #ui-layer {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      display: flex; align-items: center; justify-content: center;
-      z-index: 100; pointer-events: none;
-    }
-
-    #click-prompt {
-      color: var(--accent2); letter-spacing: 5px; font-size: 14px;
-      text-transform: uppercase; text-shadow: 0 0 15px var(--accent2);
-      animation: blink 1.5s infinite;
-    }
-
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.1; } }
-
     #info-panel {
       position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
       width: 480px; max-height: 85vh; overflow-y: auto;
-      background: var(--panel); border: 1px solid rgba(0, 255, 170, 0.2);
+      background: var(--panel); border: 1px solid rgba(0, 255, 170, 0.5);
       border-radius: 4px; padding: 40px; z-index: 2000;
-      box-shadow: 0 0 40px rgba(0,0,0,1); display: none;
+      box-shadow: 0 0 40px rgba(0, 255, 170, 0.1); display: none;
     }
 
     h2 { color: var(--accent2); font-size: 18px; border-left: 3px solid var(--accent2); padding-left: 15px; margin-bottom: 25px; }
-    .label { color: var(--accent); font-size: 10px; font-weight: bold; margin-top: 20px; display: block; opacity: 0.7; }
-    .text { font-size: 13px; line-height: 1.7; color: #cbd5e1; margin: 5px 0; }
+    .label { color: var(--accent); font-size: 10px; font-weight: bold; margin-top: 20px; display: block; text-transform: uppercase; }
+    .text { font-size: 13px; line-height: 1.7; color: #cbd5e1; margin: 10px 0; }
     .tag { display: inline-block; padding: 2px 8px; background: rgba(94, 158, 255, 0.1); border: 1px solid var(--accent); border-radius: 4px; font-size: 10px; margin: 3px; }
     
     .btn-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
     .btn { 
-      padding: 10px; text-decoration: none; font-size: 10px; text-align: center; border: 1px solid #334155; 
-      color: white; transition: 0.3s; pointer-events: auto;
+      padding: 12px; text-decoration: none; font-size: 10px; text-align: center; border: 1px solid #334155; 
+      color: white; transition: 0.3s;
     }
     .btn:hover { background: var(--accent2); color: black; border-color: var(--accent2); }
-    .close-btn { float: right; cursor: pointer; color: var(--accent2); font-size: 10px; pointer-events: auto; }
-    
-    ::-webkit-scrollbar { width: 3px; }
-    ::-webkit-scrollbar-thumb { background: var(--accent2); }
+    .close-btn { float: right; cursor: pointer; color: #ff5555; font-size: 10px; }
+
+    #hint {
+      position: fixed; bottom: 20px; left: 20px; color: var(--accent2); 
+      font-size: 10px; letter-spacing: 2px; opacity: 0.6;
+    }
   </style>
 </head>
 
 <body>
   <div id="crt-overlay"></div>
-  <div id="ui-layer">
-    <div id="click-prompt">TERMINAL STANDBY // CLICK TO BOOT</div>
-  </div>
-
+  <div id="hint">TERMINAL LIVE // INTERACT WITH NODES TO ANALYZE</div>
+  
   <div id="info-panel">
     <span class="close-btn" onclick="closePanel()">[ CLOSE ]</span>
     <div id="content-area"></div>
   </div>
 
   <script>
-    let scene, camera, renderer, dna, rain, workspace;
+    let scene, camera, renderer, dna, rain;
     let raycaster = new THREE.Raycaster();
     let mouse = new THREE.Vector2();
-    let isLive = false;
 
-    // CONTENT DATA - EXACTLY AS PER YOUR PORTFOLIO
     const nodes = [
       {
         id: "BIO", title: "IDENTITY: ASHITA JAWALI",
-        content: `
-          <p class="text"><strong>Bioinformatician | MS Quantitative Biology @ Carnegie Mellon</strong></p>
-          <p class="text">Bridging raw genomic sequences with clinical health outcomes. Specialized in NGS data analysis and computational biology pipelines.</p>
-          <div class="btn-box">
-            <a href="https://github.com/Ashita2619" target="_blank" class="btn">GITHUB</a>
-            <a href="https://linkedin.com/in/ashitajawali" target="_blank" class="btn">LINKEDIN</a>
-          </div>
-        `
+        content: `<p class="text"><strong>Bioinformatician | MS Quantitative Biology @ Carnegie Mellon</strong></p>
+                  <p class="text">Bridging raw genomic sequences with clinical health outcomes. Specialized in NGS data analysis and computational biology pipelines.</p>
+                  <div class="btn-box">
+                    <a href="https://github.com/Ashita2619" target="_blank" class="btn">GITHUB</a>
+                    <a href="https://linkedin.com/in/ashitajawali" target="_blank" class="btn">LINKEDIN</a>
+                  </div>`
       },
       {
         id: "EDU", title: "ACADEMIC LINEAGE",
-        content: `
-          <span class="label">GRADUATE</span>
-          <p class="text">Carnegie Mellon University (2022 - 2023)<br>MS in Quantitative Biology & Bioinformatics</p>
-          <span class="label">UNDERGRADUATE</span>
-          <p class="text">B.M.S. College of Engineering (2018 - 2022)<br>BE in Biotechnology | GPA: 8.56/10</p>
-          <span class="label">GRANTS</span>
-          <p class="text">Research Hub Grant Recipient (2025-2026)</p>
-        `
+        content: `<span class="label">GRADUATE</span><p class="text">Carnegie Mellon University (2022 - 2023)<br>MS in Quantitative Biology & Bioinformatics</p>
+                  <span class="label">UNDERGRADUATE</span><p class="text">B.M.S. College of Engineering (2018 - 2022)<br>BE in Biotechnology | GPA: 8.56/10</p>
+                  <span class="label">GRANTS</span><p class="text">Research Hub Grant Recipient (2025-2026)</p>`
       },
       {
         id: "ML", title: "GENOMIC MACHINE LEARNING",
-        content: `
-          <span class="label">LUNG CANCER BIOMARKERS</span>
-          <p class="text">Integrated TCGA genomic datasets using mRMR feature selection. Trained SVM/RF models to predict diagnostic biomarkers with 0.85 F1-score.</p>
-          <span class="label">NEXTSS PIPELINE</span>
-          <p class="text">Deep Learning tool built in PyTorch for high-accuracy Transcription Start Site (TSS) annotation in non-model organisms.</p>
-        `
+        content: `<span class="label">LUNG CANCER BIOMARKERS</span><p class="text">Used mRMR feature selection on TCGA data. Trained SVM/RF models to predict diagnostic biomarkers with 0.85 F1-score.</p>
+                  <span class="label">NEXTSS PIPELINE</span><p class="text">Deep Learning tool built in PyTorch for high-accuracy Transcription Start Site (TSS) annotation.</p>`
       },
       {
         id: "PUB", title: "STATISTICAL RESEARCH",
-        content: `
-          <span class="label">ENVIRONMENTAL MICROPLASTICS</span>
-          <p class="text">Published research on detection methodologies for nanoplastics in environmental water samples (2021).</p>
-          <span class="label">COVID-19 TRENDS</span>
-          <p class="text">Statistical analysis of vaccination rates vs. infection waves using R/Bioconductor.</p>
-        `
+        content: `<span class="label">ENVIRONMENTAL MICROPLASTICS</span><p class="text">Published research on detection methodologies for nanoplastics in environmental water samples (2021).</p>
+                  <span class="label">COVID-19 TRENDS</span><p class="text">Statistical analysis of vaccination rates vs. infection waves using R/Bioconductor.</p>`
       },
       {
         id: "EXP", title: "PROFESSIONAL LOG",
-        content: `
-          <span class="label">KDHE (KANSAS PUBLIC HEALTH)</span>
-          <p class="text">Lead Bioinformatician. Building production-grade Nextflow pipelines for infectious disease surveillance.</p>
-          <span class="label">BITGENOME</span>
-          <p class="text">Computational Biology Mentor. Teaching Genome Assembly and Python for Bio.</p>
-        `
+        content: `<span class="label">KDHE (KANSAS PUBLIC HEALTH)</span><p class="text">Lead Bioinformatician. Building production-grade Nextflow pipelines for infectious disease surveillance.</p>
+                  <span class="label">BITGENOME</span><p class="text">Computational Biology Mentor. Teaching Genome Assembly and Python for Bio.</p>`
       },
       {
         id: "STACK", title: "TECHNICAL GENOME",
-        content: `
-          <div style="margin-top:10px;">
-            <span class="tag">Python</span><span class="tag">R</span><span class="tag">SQL</span><span class="tag">Nextflow</span>
-            <span class="tag">Docker</span><span class="tag">Git</span><span class="tag">RNA-Seq</span><span class="tag">Variant Calling</span>
-            <span class="tag">AutoDock Vina</span><span class="tag">Linux/Bash</span>
-          </div>
-          <a href="AshitaJawali_CV.pdf" target="_blank" class="btn" style="display:block; margin-top:20px;">DOWNLOAD TECHNICAL CV</a>
-        `
+        content: `<div style="margin-top:10px;">
+                    <span class="tag">Python</span><span class="tag">R</span><span class="tag">SQL</span><span class="tag">Nextflow</span>
+                    <span class="tag">Docker</span><span class="tag">Git</span><span class="tag">RNA-Seq</span><span class="tag">Variant Calling</span>
+                    <span class="tag">AutoDock Vina</span><span class="tag">Linux/Bash</span>
+                  </div>
+                  <a href="AshitaJawali_CV.pdf" target="_blank" class="btn" style="display:block; margin-top:20px; background:var(--accent2); color:black;">DOWNLOAD CV</a>`
       }
     ];
 
     function init() {
       scene = new THREE.Scene();
-      scene.fog = new THREE.Fog(0x010205, 1, 50);
+      scene.fog = new THREE.Fog(0x010205, 5, 25);
       camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      
+      renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0x010205);
       document.body.appendChild(renderer.domElement);
 
-      // --- WORKSPACE ---
-      workspace = new THREE.Group();
-      const mon = new THREE.Mesh(new THREE.BoxGeometry(4, 2.5, 0.1), new THREE.MeshPhongMaterial({color: 0x050505}));
-      const screen = new THREE.Mesh(new THREE.PlaneGeometry(3.8, 2.3), new THREE.MeshBasicMaterial({color: 0x00ffaa, transparent: true, opacity: 0.15}));
-      screen.position.z = 0.06;
-      const desk = new THREE.Mesh(new THREE.BoxGeometry(10, 0.1, 5), new THREE.MeshPhongMaterial({color: 0x080808}));
-      desk.position.y = -2;
-      const figure = new THREE.Mesh(new THREE.CapsuleGeometry(0.4, 1), new THREE.MeshPhongMaterial({color: 0x000000}));
-      figure.position.set(0, -1, 3);
-      workspace.add(mon, screen, desk, figure);
-      scene.add(workspace);
-
-      // --- DNA ---
       dna = new THREE.Group();
-      dna.visible = false;
-      const twist = 0.4;
+      const twist = 0.5;
       for(let i=0; i<12; i++) {
         const item = nodes[i % nodes.length];
         const y = i * 1.5 - 8;
-        const x1 = Math.cos(i*twist) * 4;
-        const z1 = Math.sin(i*twist) * 4;
-        const x2 = Math.cos(i*twist + Math.PI) * 4;
-        const z2 = Math.sin(i*twist + Math.PI) * 4;
+        const ang = i * twist;
 
-        const b1 = new THREE.Mesh(new THREE.SphereGeometry(0.35, 32, 32), new THREE.MeshPhongMaterial({color: 0x5e9eff, emissive: 0x112244}));
-        b1.position.set(x1, y, z1); b1.userData = item;
-        const b2 = new THREE.Mesh(new THREE.SphereGeometry(0.35, 32, 32), new THREE.MeshPhongMaterial({color: 0x00ffaa, emissive: 0x114422}));
-        b2.position.set(x2, y, z2); b2.userData = item;
-        
-        const link = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 8), new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.1}));
-        link.rotation.z = Math.PI/2; link.rotation.y = -i*twist; link.position.y = y;
+        const s1 = new THREE.Mesh(new THREE.SphereGeometry(0.35, 32, 32), new THREE.MeshPhongMaterial({color: 0x5e9eff, emissive: 0x112244}));
+        s1.position.set(Math.cos(ang) * 4, y, Math.sin(ang) * 4);
+        s1.userData = item;
 
-        dna.add(b1, b2, link);
+        const s2 = new THREE.Mesh(new THREE.SphereGeometry(0.35, 32, 32), new THREE.MeshPhongMaterial({color: 0x00ffaa, emissive: 0x114422}));
+        s2.position.set(Math.cos(ang + Math.PI) * 4, y, Math.sin(ang + Math.PI) * 4);
+        s2.userData = item;
+
+        const link = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 8), new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.15}));
+        link.rotation.z = Math.PI/2; link.rotation.y = -ang; link.position.y = y;
+
+        dna.add(s1, s2, link);
       }
       scene.add(dna);
 
-      // --- RAIN ---
       rain = new THREE.Group();
-      rain.visible = false;
-      const ems = ['🦠','🧫','🧬','🧪','🔬'];
+      const ems = ['🦠','🧬','🧪'];
       ems.forEach(e => {
         const can = document.createElement('canvas'); can.width=64; can.height=64;
-        const ctx = can.getContext('2d'); ctx.font='30px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(e, 32, 32);
+        const ctx = can.getContext('2d'); ctx.font='32px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(e, 32, 32);
         const tex = new THREE.CanvasTexture(can);
-        for(let i=0; i<10; i++){
-          const s = new THREE.Sprite(new THREE.SpriteMaterial({map: tex, transparent: true, opacity: 0.3}));
+        for(let i=0; i<15; i++){
+          const s = new THREE.Sprite(new THREE.SpriteMaterial({map: tex, transparent: true, opacity: 0.2}));
           s.position.set(Math.random()*40-20, Math.random()*40-20, Math.random()*20-10);
-          s.userData.speed = 0.02 + Math.random()*0.03;
+          s.userData.speed = 0.01 + Math.random()*0.02;
           rain.add(s);
         }
       });
       scene.add(rain);
 
-      scene.add(new THREE.AmbientLight(0x404040, 2));
-      const p = new THREE.PointLight(0x5e9eff, 2); p.position.set(0, 2, 5); scene.add(p);
+      scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+      const p = new THREE.PointLight(0x00ffaa, 2); p.position.set(5, 5, 5); scene.add(p);
 
-      camera.position.z = 8;
+      camera.position.z = 18;
+      
       window.addEventListener('click', onClick);
       window.addEventListener('mousemove', (e) => {
         mouse.x = (e.clientX/window.innerWidth)*2-1;
@@ -228,24 +176,14 @@
     }
 
     function onClick() {
-      if(!isLive) {
-        isLive = true;
-        document.getElementById('click-prompt').style.display = 'none';
-        gsap.to(camera.position, { z: 0.5, duration: 2, ease: "expo.inOut", onComplete: () => {
-          workspace.visible = false;
-          dna.visible = true;
-          rain.visible = true;
-          gsap.to(camera.position, { z: 18, duration: 1.5, ease: "power3.out" });
-        }});
-      } else {
-        raycaster.setFromCamera(mouse, camera);
-        const hit = raycaster.intersectObjects(dna.children).find(h => h.object.userData.title);
-        if(hit) {
-          const p = document.getElementById('info-panel');
-          p.style.display = 'block';
-          document.getElementById('content-area').innerHTML = `<h2>${hit.object.userData.title}</h2>${hit.object.userData.content}`;
-          gsap.fromTo(p, {opacity: 0, x: 50}, {opacity: 1, x: 0, duration: 0.4});
-        }
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(dna.children);
+      const hit = hits.find(h => h.object.userData.title);
+      if(hit) {
+        const p = document.getElementById('info-panel');
+        p.style.display = 'block';
+        document.getElementById('content-area').innerHTML = `<h2>${hit.object.userData.title}</h2>${hit.object.userData.content}`;
+        gsap.fromTo(p, {opacity: 0, x: 50}, {opacity: 1, x: 0, duration: 0.4});
       }
     }
 
@@ -253,12 +191,15 @@
 
     function animate() {
       requestAnimationFrame(animate);
-      if(dna.visible) {
-        dna.rotation.y += 0.002;
-        rain.children.forEach(r => { r.position.y -= r.userData.speed; if(r.position.y < -20) r.position.y = 20; });
-      }
+      dna.rotation.y += 0.003;
+      rain.children.forEach(r => { r.position.y -= r.userData.speed; if(r.position.y < -20) r.position.y = 20; });
       renderer.render(scene, camera);
     }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
 
     init();
   </script>

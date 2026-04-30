@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
+<meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Bio Lab Portfolio System</title>
 
@@ -12,16 +12,14 @@
 body {
   margin: 0;
   overflow: hidden;
-  background: #05060a;
+  background: radial-gradient(circle at center, #070b14, #02030a);
   font-family: monospace;
 
-  /* 🦠 default cursor */
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text y="24" font-size="24">🦠</text></svg>'), auto;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text y="24">🦠</text></svg>'), auto;
 }
 
-/* 🧬 DNA cursor mode */
 body.dna {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text y="24" font-size="24">🧬</text></svg>'), pointer !important;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text y="24">🧬</text></svg>'), pointer !important;
 }
 
 #panel {
@@ -44,10 +42,18 @@ body.dna {
   position: absolute;
   width: 100%;
   text-align: center;
-  top: 50%;
+  top: 40%;
   color: #00ffaa;
-  letter-spacing: 2px;
   z-index: 20;
+}
+
+#terminal {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  color: #00ffaa;
+  font-size: 12px;
+  opacity: 0.8;
 }
 
 h2 { color:#00ffaa; }
@@ -66,28 +72,63 @@ h2 { color:#00ffaa; }
 
 <body>
 
-<div id="boot">CLICK TO INITIALIZE BIO LAB SYSTEM</div>
+<div id="boot">INITIALIZING BIO-LAB SYSTEM...</div>
+<div id="terminal"></div>
 <div id="panel"></div>
 
 <script>
 
 let scene, camera, renderer;
 let workspace, dnaGroup, rainGroup;
-
-let started = false;
-let dnaMode = false;
-let hoveringDNA = false;
-
 let raycaster = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
 
+let started = false;
+let hoveringDNA = false;
+
 /* =========================
-   FULL DATA (NO MISSING CONTENT)
+   SOUND + TERMINAL
+========================= */
+let audioCtx;
+function initSound(){
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  let osc = audioCtx.createOscillator();
+  let gain = audioCtx.createGain();
+
+  osc.type = "sine";
+  osc.frequency.value = 55;
+  gain.gain.value = 0.03;
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  osc.start();
+}
+
+const terminalLines = [
+"Booting Bio-Lab Kernel...",
+"Loading genome engine...",
+"Initializing DNA helices...",
+"Starting pathogen simulation...",
+"System Ready."
+];
+
+let tIndex = 0;
+function typeTerminal(){
+  if(tIndex >= terminalLines.length) return;
+  document.getElementById("terminal").innerHTML += terminalLines[tIndex] + "<br>";
+  tIndex++;
+  setTimeout(typeTerminal, 800);
+}
+
+/* =========================
+   YOUR EXACT DATA (FIXED STRUCTURE)
 ========================= */
 const dnaData = [
 
 {
 title: "USER: ASHITA JAWALI",
+color: 0x00ffaa,
 body: `
 <img src="Ashita_Photo.png" style="width:70%;border-radius:10px;border:2px solid #00ffaa;margin-bottom:10px;">
 
@@ -100,7 +141,7 @@ body: `
 </div>
 
 <p class="muted">
-   Bioinformatician working at the intersection of multi-omics, machine learning, and drug discovery. My work focuses on analyzing large-scale genomic and transcriptomic datasets, building reproducible bioinformatics pipelines, and applying computational approaches to biomarker discovery and disease research.
+Bioinformatician working at the intersection of multi-omics, machine learning, and drug discovery. My work focuses on genomic and transcriptomic analysis and biomarker discovery.
 </p>
 <p style="margin-top:10px;">ashita.bt18@bmsce.ac.in</p>
 `
@@ -108,83 +149,97 @@ body: `
 
 {
 title: "RESEARCH PROJECTS",
+color: 0x4da3ff,
 body: `
 <b>Lung Cancer Biomarker Prediction</b><br>
 RNA-seq + ML feature selection (F1 0.85)<br><br>
 
-<b>COVID Vaccine Adoption Study</b><br>
+<b>COVID Vaccine Study</b><br>
 Random Forest, XGBoost, SVM<br><br>
 
 <b>NexTSS Pipeline</b><br>
 PyTorch deep learning TSS detection<br><br>
 
 <b>Diabetes Prediction Model</b><br>
-Random Forest (82.1% accuracy)<br><br>
+Random Forest (82.1%)<br><br>
 
-<b>SARS-CoV2 Drug Docking</b><br>
+<b>SARS-CoV2 Docking</b><br>
 In-silico molecular screening
 `
 },
 
 {
 title: "EXPERIENCE LOG",
+color: 0xa855f7,
 body: `
 <b>KDHE Bioinformatician (2024–Present)</b><br>
-NGS pipelines, pathogen surveillance, variant calling<br><br>
+NGS pipelines, pathogen surveillance<br><br>
 
 <b>BitGenome Institute</b><br>
 Computational biology mentoring<br><br>
 
-<b>CMU Teaching Assistant</b><br>
-Bioinformatics + statistics teaching<br><br>
+<b>CMU TA</b><br>
+Bioinformatics teaching<br><br>
 
 <b>Hiller Lab CMU</b><br>
-Comparative genomics & phylogenetics<br><br>
+Comparative genomics<br><br>
 
-<b>IQVIA Associate Consultant</b><br>
-SQL/PLSQL + clinical analytics
+<b>IQVIA</b><br>
+Clinical data analytics
 `
 },
 
 {
 title: "PUBLICATIONS",
+color: 0xec4899,
 body: `
-Micro & Nanoplastics Detection Review (2021)<br>
-Asian Journal of Biotechnology`
+Micro & Nanoplastics Detection Review (2021)
+`
 },
 
 {
 title: "ABSTRACTS",
+color: 0xf59e0b,
 body: `
 ISCB-UK 2026 Poster (Accepted)<br>
 ISMB 2026 Submission<br>
-Research Hub Grant Proposal`
+Research Hub Proposal
+`
 },
 
 {
 title: "TECH STACK",
+color: 0x22c55e,
 body: `
 Python, R, SQL, Bash<br>
 Nextflow, Docker, Linux<br>
-RNA-seq, ML, Docking`
+RNA-seq, ML, Docking
+`
 },
 
 {
 title: "EDUCATION",
+color: 0xeab308,
 body: `
 Carnegie Mellon University (MS)<br>
-BMS College of Engineering (BE)`
+BMS College of Engineering (BE)
+`
 },
 
 {
 title: "MEMBERSHIP",
+color: 0xffffff,
 body: `
-International Society for Computational Biology (ISCB)`
+International Society for Computational Biology (ISCB)
+`
 },
 
 {
 title: "CV",
-body: `<a class="btn" href="AshitaJawali_CV.pdf">Download CV</a>`
+color: 0xffffff,
+body: `
+<a class="btn" href="AshitaJawali_CV.pdf">Download CV</a>
+`
 }
 
 ];
@@ -197,7 +252,6 @@ init();
 function init(){
 
 scene = new THREE.Scene();
-
 camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000);
 
 renderer = new THREE.WebGLRenderer({antialias:true});
@@ -205,105 +259,75 @@ renderer.setSize(innerWidth, innerHeight);
 document.body.appendChild(renderer.domElement);
 
 /* LIGHTS */
-scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-let light = new THREE.PointLight(0x00ffaa, 1.5);
+scene.add(new THREE.AmbientLight(0xffffff,1.2));
+let light = new THREE.PointLight(0x00ffaa,1.5);
 light.position.set(5,5,5);
 scene.add(light);
 
 /* =========================
-   IMPROVED DESKTOP SETUP
+   HOLOGRAPHIC DESKTOP
 ========================= */
 workspace = new THREE.Group();
 
 let desk = new THREE.Mesh(
-new THREE.BoxGeometry(12,0.4,6),
-new THREE.MeshStandardMaterial({color:0x0b0b0b, roughness:0.8})
+new THREE.BoxGeometry(12,0.3,6),
+new THREE.MeshStandardMaterial({color:0x0a0a0f})
 );
 desk.position.y = -1;
 
-let stand = new THREE.Mesh(
-new THREE.CylinderGeometry(0.25,0.35,1.5),
-new THREE.MeshStandardMaterial({color:0x222222})
-);
-
 let monitor = new THREE.Mesh(
-new THREE.BoxGeometry(5,3,0.2),
-new THREE.MeshStandardMaterial({color:0x000000})
+new THREE.BoxGeometry(5,3,0.1),
+new THREE.MeshBasicMaterial({color:0x00ffaa,transparent:true,opacity:0.2})
 );
 monitor.position.set(0,2,0);
 
-let screen = new THREE.Mesh(
-new THREE.PlaneGeometry(4.7,2.7),
-new THREE.MeshBasicMaterial({color:0x1a1f2a})
-);
-screen.position.z = 0.11;
-monitor.add(screen);
-
-let glow = new THREE.Mesh(
-new THREE.PlaneGeometry(4.5,2.5),
-new THREE.MeshBasicMaterial({color:0x00ffaa, transparent:true, opacity:0.12})
-);
-glow.position.z = 0.12;
-monitor.add(glow);
-
-let setup = new THREE.Group();
-setup.add(stand);
-setup.add(monitor);
-
-workspace.add(desk, setup);
+workspace.add(desk,monitor);
 workspace.position.y = -1;
 scene.add(workspace);
 
 /* =========================
-   DNA HELIX
+   DNA HELIX (FIXED 1 NODE = 1 SECTION)
 ========================= */
 dnaGroup = new THREE.Group();
 dnaGroup.visible = false;
 
-for(let i=0;i<40;i++){
+for(let i=0;i<dnaData.length;i++){
 
-let y = i*0.3 - 6;
-let a = i*0.45;
+let d = dnaData[i];
 
-let p1 = sphere(0x00ffaa);
-let p2 = sphere(0x5e9eff);
+let p1 = sphere(d.color);
+let p2 = sphere(d.color);
+
+let y = i*0.8 - 4;
+let a = i*0.7;
 
 p1.position.set(Math.cos(a)*1.6,y,Math.sin(a)*1.6);
 p2.position.set(Math.cos(a+Math.PI)*1.6,y,Math.sin(a+Math.PI)*1.6);
 
-let bond = new THREE.Line(
-new THREE.BufferGeometry().setFromPoints([p1.position,p2.position]),
-new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.25})
-);
+p1.userData = d;
+p2.userData = d;
 
-dnaGroup.add(p1,p2,bond);
+dnaGroup.add(p1,p2);
 }
 
 scene.add(dnaGroup);
 
 /* =========================
-   PATHOGEN RAIN (BIGGER)
+   PATHOGEN RAIN
 ========================= */
 rainGroup = new THREE.Group();
 rainGroup.visible = false;
 
-const emojis = ["🦠","🧫","🍄","🔬","⚗️"];
+const emojis = ["🦠","🧫","🔬","🍄"];
 
-for(let i=0;i<90;i++){
+for(let i=0;i<70;i++){
 
 let tex = emoji(emojis[Math.floor(Math.random()*emojis.length)]);
 
 let s = new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
 
-s.position.set(
-Math.random()*18-9,
-Math.random()*12+2,
-Math.random()*6-3
-);
-
-/* bigger than before */
+s.position.set(Math.random()*16-8,Math.random()*10+2,Math.random()*6-3);
 s.scale.set(0.35,0.35,0.35);
-
 s.userData.speed = 0.01 + Math.random()*0.01;
 
 rainGroup.add(s);
@@ -315,7 +339,6 @@ camera.position.z = 8;
 
 /* EVENTS */
 window.addEventListener("click",onClick);
-
 window.addEventListener("mousemove",e=>{
 mouse.x = (e.clientX/innerWidth)*2-1;
 mouse.y = -(e.clientY/innerHeight)*2+1;
@@ -325,11 +348,14 @@ animate();
 }
 
 /* =========================
-   CLICK FLOW
+   CLICK
 ========================= */
 function onClick(){
 
 if(!started){
+
+initSound();
+typeTerminal();
 
 gsap.to(camera.position,{
 z:2,
@@ -352,13 +378,10 @@ let hit = raycaster.intersectObjects(dnaGroup.children);
 
 if(hit.length){
 
-dnaMode = true;
+let d = hit[0].object.userData;
 
-let panel = document.getElementById("panel");
-panel.style.display = "block";
-
-let index = Math.floor(Math.random()*dnaData.length);
-panel.innerHTML = `<h2>${dnaData[index].title}</h2>${dnaData[index].body}`;
+document.getElementById("panel").style.display="block";
+document.getElementById("panel").innerHTML = `<h2>${d.title}</h2>${d.body}`;
 }
 }
 
@@ -369,37 +392,27 @@ function animate(){
 
 requestAnimationFrame(animate);
 
-/* rain */
-if(rainGroup.visible){
+dnaGroup.rotation.y += 0.002;
+
 rainGroup.children.forEach(r=>{
 r.position.y -= r.userData.speed;
 if(r.position.y < -5) r.position.y = 10;
 });
-}
 
-/* DNA rotation */
-dnaGroup.rotation.y += 0.002;
-
-/* cursor logic */
-raycaster.setFromCamera(mouse, camera);
+raycaster.setFromCamera(mouse,camera);
 let hit = raycaster.intersectObjects(dnaGroup.children);
 
 hoveringDNA = hit.length > 0;
-
-if (dnaMode || hoveringDNA) {
-document.body.classList.add("dna");
-} else {
-document.body.classList.remove("dna");
-}
+document.body.classList.toggle("dna", hoveringDNA);
 
 renderer.render(scene,camera);
 }
 
-/* helpers */
-function sphere(color){
+/* HELPERS */
+function sphere(c){
 return new THREE.Mesh(
 new THREE.SphereGeometry(0.12,16,16),
-new THREE.MeshStandardMaterial({color})
+new THREE.MeshStandardMaterial({color:c})
 );
 }
 

@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ashita Jawali | Bioinformatician | Interactive DNA Portfolio</title>
+  <meta name="description" content="Ashita Jawali — Bioinformatician | Multi-omics, AI/ML, Drug Discovery." />
+  
+  <!-- Three.js for the 3D DNA Model -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #0b1220;
+      --text: #e9eefc;
+      --muted: #b7c3e6;
+      --accent: #7aa2ff; /* Blue for Strand 1 */
+      --accent2: #7affd0; /* Green for Strand 2 */
+      --border: rgba(255, 255, 255, .10);
+      --card: rgba(15, 23, 42, 0.7); /* Transparent to see DNA */
+      --radius: 18px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background-color: var(--bg);
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* 3D Canvas Background */
+    #canvas-container {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: -1;
+      background: radial-gradient(circle at center, #162036 0%, #0b1220 100%);
+    }
+
+    /* Interactive Tooltip */
+    #tooltip {
+      position: fixed;
+      padding: 12px;
+      background: rgba(11, 18, 32, 0.95);
+      border: 1px solid var(--accent2);
+      color: var(--text);
+      border-radius: 8px;
+      pointer-events: none;
+      display: none;
+      z-index: 9999;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      box-shadow: 0 0 20px rgba(122, 255, 208, 0.2);
+    }
+
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 18px; position: relative; }
+
+    header { 
+      padding: 40px 0 20px; 
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(5px);
+    }
+
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    
+    .brand { display: flex; align-items: center; gap: 16px; }
+    .avatar { 
+      width: 80px; height: 80px; border-radius: 20px; overflow: hidden; 
+      border: 2px solid var(--accent); 
+      box-shadow: 0 0 20px rgba(122, 162, 255, 0.3);
+    }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    h1 { margin: 0; font-size: 28px; font-weight: 900; }
+    h2 { margin: 0 0 15px; font-size: 18px; font-weight: 800; color: var(--accent2); text-transform: uppercase; letter-spacing: 1px; }
+    .headline { font-size: 14px; color: var(--muted); margin-top: 4px; }
+
+    nav { display: flex; gap: 10px; }
+    .pill { 
+      padding: 8px 16px; border: 1px solid var(--border); 
+      background: rgba(255,255,255,0.05); border-radius: 999px; 
+      color: var(--text); text-decoration: none; font-size: 13px; font-weight: 600;
+      transition: 0.3s;
+    }
+    .pill:hover { border-color: var(--accent2); background: rgba(122, 255, 208, 0.1); }
+
+    main { padding: 30px 0 80px; }
+    .grid { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 20px; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      margin-bottom: 20px;
+      transition: 0.3s;
+    }
+    .card:hover { border-color: rgba(122, 255, 208, 0.3); transform: translateY(-3px); }
+
+    .items { display: grid; gap: 15px; }
+    .item { 
+      padding: 15px; background: rgba(255,255,255,0.03); 
+      border-radius: 12px; border: 1px solid var(--border);
+    }
+    .item-title { font-weight: 800; color: var(--accent); font-size: 16px; margin-bottom: 5px; display: block; }
+    .muted { color: var(--muted); font-size: 14px; }
+    
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .chip { 
+      padding: 4px 10px; font-size: 11px; border-radius: 999px; 
+      border: 1px solid var(--accent2); color: var(--accent2); 
+      background: rgba(122, 255, 208, 0.05); font-weight: 600;
+    }
+
+    .btn { 
+      display: inline-block; padding: 10px 20px; border-radius: 10px; 
+      background: var(--accent); color: #0b1220; font-weight: 800; 
+      text-decoration: none; margin-top: 15px; font-size: 14px;
+    }
+
+    @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+
+<body>
+  <div id="canvas-container"></div>
+  <div id="tooltip"></div>
+
+  <header class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="avatar"><img src="Ashita_Photo.png" alt="Ashita Jawali"></div>
+        <div>
+          <h1>Ashita Jawali</h1>
+          <div class="headline">Bioinformatician | Multi-omics | AI/ML | Drug Discovery</div>
+        </div>
+      </div>
+      <nav>
+        <a class="pill" href="#about">About</a>
+        <a class="pill" href="#projects">Projects</a>
+        <a class="pill" href="#experience">Experience</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap grid">
+    <div class="left-col">
+      <section class="card" id="about">
+        <h2>About & Core Areas</h2>
+        <p class="muted">Analyzing large-scale genomic datasets to discover the next generation of biomarkers. My work bridges computational efficiency with biological insight.</p>
+        <div class="chips">
+          <span class="chip">RNA-seq</span><span class="chip">Variant Calling</span>
+          <span class="chip">Nextflow</span><span class="chip">Drug Discovery</span>
+          <span class="chip">Deep Learning</span><span class="chip">Biomarker discovery</span>
+        </div>
+        <div style="margin-top: 20px;">
+            <a href="https://github.com/Ashita2619" class="btn">GitHub</a>
+            <a href="https://www.linkedin.com/in/ashita-jawali-9a6872198/" class="btn" style="background:var(--accent2); margin-left:10px;">LinkedIn</a>
+        </div>
+      </section>
+
+      <section class="card" id="projects">
+        <h2>Academic Projects</h2>
+        <div class="items">
+          <div class="item">
+            <span class="item-title">Novel Biomarker Prediction for Lung Cancer</span>
+            <p class="muted">Applied ML and feature selection to identify gene signatures with F1 scores up to 0.85.</p>
+          </div>
+          <div class="item">
+            <span class="item-title">NexTSS: Transcription Start Site Annotation</span>
+            <p class="muted">Deep learning model developed in PyTorch for high-precision genomic annotation.</p>
+          </div>
+          <div class="item">
+            <span class="item-title">In-Silico Approach for SARS-COV2 Inhibitors</span>
+            <p class="muted">Protein-ligand docking and molecular interaction analysis for drug discovery.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="experience">
+        <h2>Work Experience</h2>
+        <div class="items">
+          <div class="item">
+            <div style="display:flex; justify-content:space-between;">
+                <strong>Bioinformatician</strong>
+                <span style="color:var(--accent2)">2024 - Present</span>
+            </div>
+            <div class="muted">Kansas Department of Health and Environment</div>
+            <ul class="muted" style="margin: 10px 0 0 15px; padding:0;">
+                <li>Design NGS analysis pipelines for pathogen surveillance.</li>
+                <li>Built workflows using Python and Nextflow.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="right-col">
+      <aside class="card">
+        <h2>Interactive Genome</h2>
+        <p class="muted" style="font-size:12px;">Hover over the 3D nucleotides in the background to sequence my "Skills & Experiences" encoded in the DNA.</p>
+      </aside>
+
+      <aside class="card">
+        <h2>Education</h2>
+        <div class="item">
+            <strong>Master's Degree</strong>
+            <div class="muted">Carnegie Mellon University | 2023</div>
+        </div>
+        <div class="item">
+            <strong>Bachelor's Degree</strong>
+            <div class="muted">B.M.S. College of Engineering | 2022</div>
+        </div>
+      </aside>
+
+      <aside class="card">
+        <h2>Technical Stack</h2>
+        <div class="chips">
+            <span class="chip">Python</span><span class="chip">R</span><span class="chip">Linux</span>
+            <span class="chip">Docker</span><span class="chip">SQL</span><span class="chip">Git</span>
+            <span class="chip">Bash</span><span class="chip">Nextflow</span>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    /** INTERACTIVE 3D DNA LOGIC **/
+    let scene, camera, renderer, dnaGroup, raycaster, mouse;
+    const tooltip = document.getElementById('tooltip');
+
+    // Data to show on hover (Mapping achievements to DNA)
+    const encodedData = [
+      { label: "SKILL", val: "Python / Biopython" },
+      { label: "EXP", val: "NGS Pipeline Expert" },
+      { label: "SKILL", val: "PyTorch Deep Learning" },
+      { label: "ACHIEVEMENT", val: "ISMB 2026 Poster" },
+      { label: "SKILL", val: "RNA-Seq Analysis" },
+      { label: "EXP", val: "KDHE Bioinformatician" },
+      { label: "SKILL", val: "Nextflow / Docker" },
+      { label: "PROJECT", val: "Lung Cancer Biomarkers" },
+      { label: "SKILL", val: "Machine Learning" },
+      { label: "EXP", val: "Drug Discovery In-Silico" }
+    ];
+
+    function init() {
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+      raycaster = new THREE.Raycaster();
+      mouse = new THREE.Vector2();
+      dnaGroup = new THREE.Group();
+      
+      const numPoints = 40;
+      const twist = 0.35;
+      const stepHeight = 0.5;
+
+      for (let i = 0; i < numPoints; i++) {
+        const sphereGeo = new THREE.SphereGeometry(0.18, 16, 16);
+        
+        // Strand 1 (Blue)
+        const s1Mat = new THREE.MeshPhongMaterial({ color: 0x7aa2ff, shininess: 100 });
+        const s1 = new THREE.Mesh(sphereGeo, s1Mat);
+        s1.position.set(Math.cos(i * twist) * 3, i * stepHeight - 10, Math.sin(i * twist) * 3);
+        // Attach data to every 4th sphere for variety
+        s1.userData = { info: encodedData[i % encodedData.length] };
+        dnaGroup.add(s1);
+
+        // Strand 2 (Green)
+        const s2Mat = new THREE.MeshPhongMaterial({ color: 0x7affd0, shininess: 100 });
+        const s2 = new THREE.Mesh(sphereGeo, s2Mat);
+        s2.position.set(Math.cos(i * twist + Math.PI) * 3, i * stepHeight - 10, Math.sin(i * twist + Math.PI) * 3);
+        s2.userData = { info: { label: "SEQUENCE", val: `Base Pair ${i+1}` } };
+        dnaGroup.add(s2);
+
+        // Base Pair Hydrogen Bonds (Cylinders)
+        if (i % 2 === 0) {
+          const cylinder = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.03, 0.03, 6, 8),
+            new THREE.MeshPhongMaterial({ color: 0xffffff, transparent: true, opacity: 0.2 })
+          );
+          cylinder.position.set(0, i * stepHeight - 10, 0);
+          cylinder.rotation.z = Math.PI / 2;
+          cylinder.rotation.y = -i * twist;
+          dnaGroup.add(cylinder);
+        }
+      }
+
+      scene.add(dnaGroup);
+      
+      const pLight = new THREE.PointLight(0xffffff, 1, 100);
+      pLight.position.set(10, 10, 10);
+      scene.add(pLight);
+      scene.add(new THREE.AmbientLight(0x404040));
+
+      camera.position.z = 12;
+
+      window.addEventListener('mousemove', onMouseMove);
+      animate();
+    }
+
+    function onMouseMove(event) {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      tooltip.style.left = (event.clientX + 20) + 'px';
+      tooltip.style.top = (event.clientY + 20) + 'px';
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      
+      // Continuous Rotation
+      dnaGroup.rotation.y += 0.003; 
+      // Subtle tilt based on scroll
+      dnaGroup.rotation.x = window.scrollY * 0.0005;
+
+      // Interaction Logic
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(dnaGroup.children);
+
+      if (intersects.length > 0) {
+        const obj = intersects[0].object;
+        if (obj.userData.info) {
+          tooltip.style.display = 'block';
+          tooltip.innerHTML = `<span style="color:var(--accent2)">[${obj.userData.info.label}]</span><br>${obj.userData.info.val}`;
+          obj.scale.set(1.8, 1.8, 1.8);
+        }
+      } else {
+        tooltip.style.display = 'none';
+        dnaGroup.children.forEach(child => {
+          if (child.type === "Mesh" && child.geometry.type === "SphereGeometry") {
+            child.scale.set(1, 1, 1);
+          }
+        });
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    init();
+  </script>
+</body>
+</html>

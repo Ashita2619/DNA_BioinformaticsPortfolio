@@ -3,235 +3,358 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-<title>Ashita Jawali | Bioinformatics Portfolio</title>
+<title>Ashita Jawali | Bioinformatician</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;500&display=swap" rel="stylesheet">
 
 <style>
-body { margin:0; overflow:hidden; background:#010205; font-family:monospace; color:white; }
-
-#info-panel{
-position:absolute; right:40px; top:50%; transform:translateY(-50%);
-width:420px; background:rgba(0,0,0,0.9); padding:25px;
-border:1px solid #00ffaa; display:none;
+:root {
+  --bg: #010205;
+  --panel: rgba(2, 5, 12, 0.98);
+  --accent: #5e9eff;
+  --accent2: #00ffaa;
+  --text: #ffffff;
 }
 
-h2{color:#00ffaa;}
-.tag{border:1px solid #5e9eff; padding:2px 6px; margin:3px; display:inline-block;}
-.btn{display:inline-block; border:1px solid #333; padding:6px 10px; margin:5px; color:white; text-decoration:none;}
-.btn:hover{background:#00ffaa; color:black;}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  overflow: hidden;
+}
 
-#boot{
-position:fixed; width:100%; height:100%;
-display:flex; align-items:center; justify-content:center;
-background:#fff; color:black; cursor:pointer; z-index:10;
-flex-direction:column;
+/* INTRO */
+#boot-screen {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 5000;
+  cursor: pointer;
+}
+
+#desktop-img {
+  width: 60%;
+  max-width: 900px;
+}
+
+#boot-text {
+  margin-top: 20px;
+  background: black;
+  color: white;
+  padding: 8px 16px;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+/* CRT */
+#crt-overlay {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* PANEL */
+#info-panel {
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--panel);
+  border: 1px solid rgba(0,255,170,0.5);
+  padding: 30px;
+  display: none;
+  z-index: 2000;
+}
+
+h2 {
+  color: var(--accent2);
+  font-size: 18px;
+  border-left: 3px solid var(--accent2);
+  padding-left: 10px;
+}
+
+.text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+.tag {
+  display: inline-block;
+  padding: 3px 8px;
+  border: 1px solid var(--accent);
+  margin: 3px;
+  font-size: 10px;
+}
+
+.btn {
+  display: inline-block;
+  margin-top: 10px;
+  margin-right: 8px;
+  padding: 8px 12px;
+  border: 1px solid #334155;
+  text-decoration: none;
+  color: white;
+  font-size: 10px;
+}
+
+.btn:hover {
+  background: var(--accent2);
+  color: black;
+}
+
+.close-btn {
+  float: right;
+  cursor: pointer;
+  color: red;
+}
+
+/* HINT */
+#hint {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  font-size: 10px;
+  color: var(--accent2);
 }
 </style>
 </head>
 
 <body>
 
-<div id="boot">
-<h2>Click to Begin</h2>
+<div id="boot-screen">
+  <img src="your-desktop-image.png" id="desktop-img">
+  <div id="boot-text">CLICK ANYWHERE TO BEGIN</div>
 </div>
 
+<div id="crt-overlay"></div>
+<div id="hint">INTERACT WITH DNA NODES</div>
+
 <div id="info-panel">
-<div id="content"></div>
+  <span class="close-btn" onclick="closePanel()">[ CLOSE ]</span>
+  <div id="content-area"></div>
 </div>
 
 <script>
-let scene, camera, renderer;
-let dnaGroup, deskGroup;
+let scene, camera, renderer, dna, rain;
 let raycaster = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
-let INTERSECTED = null;
 
-/* ========= DATA ========= */
+/* ===== DATA ===== */
 const nodes = [
+
 {
-title:"ABOUT",
-content:`<h2>About</h2>
-<p>Bioinformatician working on multi-omics + ML.</p>
-<a class="btn" href="https://github.com/Ashita2619" target="_blank">GitHub</a>`
+title: "ABOUT",
+content: `
+<h2>About</h2>
+<p class="text">
+Bioinformatician working at the intersection of multi-omics, machine learning, and drug discovery.
+</p>
+
+<a class="btn" href="https://github.com/Ashita2619" target="_blank">GitHub</a>
+<a class="btn" href="https://www.linkedin.com/in/ashita-jawali-9a6872198/" target="_blank">LinkedIn</a>
+<a class="btn" href="AshitaJawali_CV.pdf" target="_blank">CV</a>
+
+<div style="margin-top:15px;">
+<span class="tag">Bioinformatics</span>
+<span class="tag">Multi-omics</span>
+<span class="tag">Machine Learning</span>
+<span class="tag">Drug Discovery</span>
+<span class="tag">RNA-seq</span>
+</div>
+`
 },
+
 {
-title:"PROJECTS",
-content:`<h2>Projects</h2>
-<p>Lung cancer biomarkers, NexTSS, ML pipelines</p>`
+title: "PROJECTS",
+content: `
+<h2>Projects</h2>
+
+<p class="text"><b>Lung Cancer Biomarkers</b></p>
+<ul class="text">
+<li>RNA-seq + ML (F1 up to 0.85)</li>
+<li>Pathway interpretation</li>
+</ul>
+
+<p class="text"><b>NexTSS Pipeline</b></p>
+<ul class="text">
+<li>Deep learning TSS detection</li>
+<li>HPC workflows</li>
+</ul>
+
+<a class="btn" href="https://github.com/Ashita2619" target="_blank">GitHub</a>
+`
 },
+
 {
-title:"EXPERIENCE",
-content:`<h2>Experience</h2>
-<p>KDHE Bioinformatician, BitGenome mentor</p>`
+title: "EXPERIENCE",
+content: `
+<h2>Experience</h2>
+
+<p class="text"><b>Bioinformatician — KDHE</b></p>
+<ul class="text">
+<li>NGS pipelines</li>
+<li>Variant calling & assembly</li>
+</ul>
+
+<p class="text"><b>Computational Biologist — BitGenome</b></p>
+<ul class="text">
+<li>Mentorship & teaching</li>
+</ul>
+`
 },
+
 {
-title:"STACK",
-content:`<h2>Stack</h2>
-<span class="tag">Python</span><span class="tag">R</span><span class="tag">Nextflow</span>`
+title: "RESEARCH",
+content: `
+<h2>Research</h2>
+
+<p class="text">
+Microplastics detection (2021)
+</p>
+
+<p class="text">
+COVID statistical modeling
+</p>
+`
+},
+
+{
+title: "STACK",
+content: `
+<h2>Tech Stack</h2>
+
+<span class="tag">Python</span>
+<span class="tag">R</span>
+<span class="tag">SQL</span>
+<span class="tag">Nextflow</span>
+<span class="tag">Docker</span>
+`
 }
+
 ];
 
-/* ========= INIT ========= */
-function init(){
-scene = new THREE.Scene();
+/* ===== INIT ===== */
+function init() {
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
 
-camera = new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1000);
-camera.position.set(0,2,8);
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
 
-renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth,innerHeight);
-document.body.appendChild(renderer.domElement);
+  camera.position.z = 25;
 
-/* LIGHT */
-scene.add(new THREE.AmbientLight(0xffffff,0.6));
-const light = new THREE.PointLight(0x00ffaa,2);
-light.position.set(5,5,5);
-scene.add(light);
+  dna = new THREE.Group();
+  for(let i=0;i<12;i++){
+    const data = nodes[i % nodes.length];
+    const angle = i * 0.5;
+    const y = i * 1.5 - 8;
 
-/* ===== DESK (INTRO SCENE) ===== */
-deskGroup = new THREE.Group();
+    const s = new THREE.Mesh(
+      new THREE.SphereGeometry(0.4,32,32),
+      new THREE.MeshBasicMaterial({color: i%2 ? 0x00ffaa : 0x5e9eff})
+    );
 
-// table
-const table = new THREE.Mesh(
-new THREE.BoxGeometry(6,0.3,3),
-new THREE.MeshStandardMaterial({color:0x222222})
-);
-deskGroup.add(table);
+    s.position.set(Math.cos(angle)*4, y, Math.sin(angle)*4);
+    s.userData = data;
+    dna.add(s);
+  }
+  dna.visible = false;
+  scene.add(dna);
 
-// monitor
-const monitor = new THREE.Mesh(
-new THREE.BoxGeometry(1.5,1,0.1),
-new THREE.MeshStandardMaterial({color:0x555555})
-);
-monitor.position.set(0,0.8,0);
-deskGroup.add(monitor);
+  rain = new THREE.Group();
+  for(let i=0;i<40;i++){
+    const s = new THREE.Mesh(
+      new THREE.SphereGeometry(0.05),
+      new THREE.MeshBasicMaterial({color: 0x00ffaa})
+    );
+    s.position.set(Math.random()*20-10, Math.random()*20-10, Math.random()*20-10);
+    s.userData.speed = Math.random()*0.02;
+    rain.add(s);
+  }
+  rain.visible = false;
+  scene.add(rain);
 
-scene.add(deskGroup);
+  window.addEventListener("click", onClick);
+  window.addEventListener("mousemove", e=>{
+    mouse.x = (e.clientX/window.innerWidth)*2-1;
+    mouse.y = -(e.clientY/window.innerHeight)*2+1;
+  });
 
-/* ===== DNA ===== */
-dnaGroup = new THREE.Group();
-
-const radius = 2;
-const height = 10;
-
-for(let i=0;i<30;i++){
-let angle = i*0.4;
-let y = (i/30)*height - height/2;
-
-let left = new THREE.Mesh(
-new THREE.SphereGeometry(0.15),
-new THREE.MeshStandardMaterial({color:0x5e9eff})
-);
-
-let right = new THREE.Mesh(
-new THREE.SphereGeometry(0.15),
-new THREE.MeshStandardMaterial({color:0x00ffaa})
-);
-
-left.position.set(Math.cos(angle)*radius,y,Math.sin(angle)*radius);
-right.position.set(Math.cos(angle+Math.PI)*radius,y,Math.sin(angle+Math.PI)*radius);
-
-left.userData = nodes[i % nodes.length];
-right.userData = nodes[i % nodes.length];
-
-// bond
-const bondGeom = new THREE.BufferGeometry().setFromPoints([
-left.position, right.position
-]);
-const bond = new THREE.Line(bondGeom, new THREE.LineBasicMaterial({color:0xffffff}));
-
-dnaGroup.add(left, right, bond);
+  animate();
 }
 
-dnaGroup.visible = false;
-scene.add(dnaGroup);
+/* ===== INTRO ===== */
+document.getElementById("boot-screen").addEventListener("click", ()=>{
+  const boot = document.getElementById("boot-screen");
 
-animate();
-}
+  gsap.to(boot, {
+    opacity:0,
+    duration:0.8,
+    onComplete: ()=> boot.style.display="none"
+  });
 
-/* ========= BOOT CLICK ========= */
-document.getElementById("boot").onclick = () => {
-
-gsap.to("#boot",{opacity:0,duration:0.5,onComplete:()=>{
-document.getElementById("boot").style.display="none";
-}});
-
-// move camera through monitor
-gsap.to(camera.position,{
-z:2, duration:1.5, ease:"power2.inOut",
-onComplete:()=>{
-deskGroup.visible=false;
-dnaGroup.visible=true;
-
-gsap.to(camera.position,{z:6,duration:1});
-}
+  gsap.to(camera.position, {
+    z:12,
+    duration:1.5,
+    onComplete: ()=>{
+      dna.visible = true;
+      rain.visible = true;
+      gsap.to(camera.position, { z:18, duration:1 });
+    }
+  });
 });
 
-};
+/* ===== CLICK ===== */
+function onClick(){
+  raycaster.setFromCamera(mouse,camera);
+  const hits = raycaster.intersectObjects(dna.children);
 
-/* ========= INTERACTION ========= */
-window.addEventListener("mousemove",e=>{
-mouse.x = (e.clientX/innerWidth)*2-1;
-mouse.y = -(e.clientY/innerHeight)*2+1;
-});
+  if(hits.length){
+    const data = hits[0].object.userData;
+    const panel = document.getElementById("info-panel");
 
-window.addEventListener("click",()=>{
-
-raycaster.setFromCamera(mouse,camera);
-let intersects = raycaster.intersectObjects(dnaGroup.children);
-
-if(intersects.length){
-let obj = intersects[0].object;
-
-if(obj.userData){
-document.getElementById("info-panel").style.display="block";
-document.getElementById("content").innerHTML = obj.userData.content;
-
-// camera zoom to node
-gsap.to(camera.position,{
-x:obj.position.x,
-y:obj.position.y,
-z:obj.position.z + 2,
-duration:1
-});
-}
+    panel.style.display="block";
+    document.getElementById("content-area").innerHTML = data.content;
+  }
 }
 
-});
-
-/* ========= HOVER ========= */
-function hoverEffect(){
-raycaster.setFromCamera(mouse,camera);
-let intersects = raycaster.intersectObjects(dnaGroup.children);
-
-if(INTERSECTED) INTERSECTED.material.emissive?.set(0x000000);
-
-if(intersects.length){
-INTERSECTED = intersects[0].object;
-if(INTERSECTED.material.emissive)
-INTERSECTED.material.emissive.set(0x222222);
-}
+function closePanel(){
+  document.getElementById("info-panel").style.display="none";
 }
 
-/* ========= ANIMATE ========= */
+/* ===== ANIMATE ===== */
 function animate(){
-requestAnimationFrame(animate);
+  requestAnimationFrame(animate);
 
-hoverEffect();
+  dna.rotation.y += 0.003;
 
-dnaGroup.rotation.y += 0.003;
+  rain.children.forEach(p=>{
+    p.position.y -= p.userData.speed;
+    if(p.position.y < -10) p.position.y = 10;
+  });
 
-renderer.render(scene,camera);
+  renderer.render(scene,camera);
 }
 
-/* ========= RESIZE ========= */
-window.addEventListener("resize",()=>{
-camera.aspect = innerWidth/innerHeight;
-camera.updateProjectionMatrix();
-renderer.setSize(innerWidth,innerHeight);
+window.addEventListener("resize", ()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth,window.innerHeight);
 });
 
 init();

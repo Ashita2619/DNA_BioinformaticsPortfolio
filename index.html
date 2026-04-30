@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
+<meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Bio Lab Portfolio System</title>
 
@@ -15,9 +15,11 @@ body {
   background: #05060a;
   font-family: monospace;
 
+  /* 🦠 default cursor */
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text y="24" font-size="24">🦠</text></svg>'), auto;
 }
 
+/* 🧬 DNA cursor */
 body.dna {
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text y="24" font-size="24">🧬</text></svg>'), pointer !important;
 }
@@ -44,6 +46,7 @@ body.dna {
   text-align: center;
   top: 50%;
   color: #00ffaa;
+  letter-spacing: 2px;
   z-index: 20;
 }
 
@@ -72,83 +75,73 @@ let scene, camera, renderer;
 let workspace, dnaGroup, rainGroup;
 
 let started = false;
-let hoveringDNA = false;
+let dnaMode = false;
 
 let raycaster = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
+let hoveringDNA = false;
 
 /* =========================
-   STRUCTURED DNA DATA (NO RANDOMNESS)
+   CLEAN DATA (FIXED)
 ========================= */
 const dnaData = [
 {
-title: "ABOUT",
-color: 0x00ffaa,
+title: "USER: ASHITA JAWALI",
 body: `
 <img src="Ashita_Photo.png" style="width:60%;border-radius:10px;border:2px solid #00ffaa;margin-bottom:10px;">
-<p><b>Bioinformatician</b><br>Multi-omics | AI/ML | Drug Discovery</p>
+
+<p><b>Bioinformatician</b><br>Topeka, Kansas, USA</p>
+
 <div style="margin-top:10px;">
-<a class="btn" href="https://github.com/Ashita2619">GitHub</a>
-<a class="btn" href="https://linkedin.com">LinkedIn</a>
-<a class="btn" href="AshitaJawali_CV.pdf">CV</a>
+<a href="https://github.com/Ashita2619" class="btn">GitHub</a>
+<a href="https://www.linkedin.com/in/ashita-jawali-9a6872198/" class="btn">LinkedIn</a>
+<a href="AshitaJawali_CV.pdf" class="btn">CV</a>
 </div>
+
+<p style="margin-top:10px;">
+Multi-omics + ML + drug discovery researcher.
+</p>
+
+<p style="margin-top:10px;">ashita.bt18@bmsce.ac.in</p>
 `
 },
 {
 title: "PROJECTS",
-color: 0x4da3ff,
 body: `
-<b>Lung Cancer Biomarkers</b><br>RNA-seq + ML (F1 0.85)<br><br>
-<b>COVID Vaccine Study</b><br>Random Forest / XGBoost<br><br>
-<b>NexTSS Pipeline</b><br>Deep learning TSS detection
+Lung Cancer Biomarkers (F1 0.85)<br>
+NexTSS Deep Learning Pipeline<br>
+COVID Vaccine ML Study<br>
+Diabetes Prediction Model<br>
+SARS-CoV2 Docking Study
 `
 },
 {
 title: "EXPERIENCE",
-color: 0xa855f7,
 body: `
-<b>KDHE</b><br>NGS pathogen pipelines<br><br>
-<b>BitGenome</b><br>Bioinformatics mentoring<br><br>
-<b>CMU TA</b><br>Teaching assistant
+KDHE - Bioinformatician (NGS pipelines)<br>
+BitGenome - Mentor<br>
+CMU TA - Bioinformatics<br>
+IQVIA - Clinical Analytics
 `
 },
 {
-title: "SKILLS",
-color: 0x22c55e,
+title: "TECH STACK",
 body: `
-Python, R, SQL<br>
-Nextflow, Docker<br>
+Python, R, SQL, Bash<br>
+Nextflow, Docker, Linux<br>
 RNA-seq, ML, Docking
 `
 },
 {
 title: "EDUCATION",
-color: 0xf59e0b,
 body: `
-Carnegie Mellon University (MS)<br>
-BMS College of Engineering (BE)
-`
-},
-{
-title: "PUBLICATIONS",
-color: 0xec4899,
-body: `
-Micro & Nanoplastics Detection Review (2021)
-`
-},
-{
-title: "MEMBERSHIP",
-color: 0xeab308,
-body: `
-ISCB (International Society for Computational Biology)
+MS - Carnegie Mellon University<br>
+BE - BMS College of Engineering
 `
 },
 {
 title: "CV",
-color: 0xffffff,
-body: `
-<a class="btn" href="AshitaJawali_CV.pdf">Download CV</a>
-`
+body: `<a class="btn" href="AshitaJawali_CV.pdf">Download CV</a>`
 }
 ];
 
@@ -160,13 +153,13 @@ init();
 function init(){
 
 scene = new THREE.Scene();
-
 camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000);
 
 renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth, innerHeight);
 document.body.appendChild(renderer.domElement);
 
+/* LIGHT */
 scene.add(new THREE.AmbientLight(0xffffff, 1.2));
 let light = new THREE.PointLight(0x00ffaa, 1.5);
 light.position.set(5,5,5);
@@ -178,7 +171,7 @@ scene.add(light);
 workspace = new THREE.Group();
 
 let desk = new THREE.Mesh(
-new THREE.BoxGeometry(12,0.4,6),
+new THREE.BoxGeometry(12,0.5,6),
 new THREE.MeshStandardMaterial({color:0x0b0b0b})
 );
 desk.position.y = -1;
@@ -191,36 +184,38 @@ monitor.position.set(0,2,0);
 
 let screen = new THREE.Mesh(
 new THREE.PlaneGeometry(4.7,2.7),
-new THREE.MeshBasicMaterial({color:0x1a1f2a})
+new THREE.MeshBasicMaterial({color:0x111827})
 );
 screen.position.z = 0.11;
 monitor.add(screen);
+
+let glow = new THREE.Mesh(
+new THREE.PlaneGeometry(4.5,2.5),
+new THREE.MeshBasicMaterial({color:0x00ffaa, transparent:true, opacity:0.15})
+);
+glow.position.z = 0.12;
+monitor.add(glow);
 
 workspace.add(desk, monitor);
 workspace.position.y = -1;
 scene.add(workspace);
 
 /* =========================
-   DNA HELIX (FIXED MAPPING)
+   DNA HELIX
 ========================= */
 dnaGroup = new THREE.Group();
 dnaGroup.visible = false;
 
-for(let i=0;i<dnaData.length;i++){
+for(let i=0;i<40;i++){
 
-let y = i*0.7 - 4;
-let a = i*0.8;
+let y = i*0.3 - 6;
+let a = i*0.45;
 
-let data = dnaData[i];
-
-let p1 = sphere(data.color);
-let p2 = sphere(data.color);
+let p1 = sphere(0x00ffaa);
+let p2 = sphere(0x5e9eff);
 
 p1.position.set(Math.cos(a)*1.6,y,Math.sin(a)*1.6);
 p2.position.set(Math.cos(a+Math.PI)*1.6,y,Math.sin(a+Math.PI)*1.6);
-
-p1.userData = data;
-p2.userData = data;
 
 let bond = new THREE.Line(
 new THREE.BufferGeometry().setFromPoints([p1.position,p2.position]),
@@ -233,26 +228,26 @@ dnaGroup.add(p1,p2,bond);
 scene.add(dnaGroup);
 
 /* =========================
-   PATHOGEN RAIN (BALANCED)
+   PATHOGEN RAIN (SMALL)
 ========================= */
 rainGroup = new THREE.Group();
 rainGroup.visible = false;
 
-const emojis = ["🦠","🧫","🍄","🔬"];
+const emojis = ["🦠","🧫","🍄","🔬","⚗️"];
 
-for(let i=0;i<70;i++){
+for(let i=0;i<90;i++){
 
 let tex = emoji(emojis[Math.floor(Math.random()*emojis.length)]);
 
 let s = new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
 
 s.position.set(
-Math.random()*16-8,
-Math.random()*10+2,
+Math.random()*18-9,
+Math.random()*12+2,
 Math.random()*6-3
 );
 
-s.scale.set(0.35,0.35,0.35);
+s.scale.set(0.3,0.3,0.3);
 s.userData.speed = 0.01 + Math.random()*0.01;
 
 rainGroup.add(s);
@@ -263,9 +258,9 @@ scene.add(rainGroup);
 camera.position.z = 8;
 
 /* EVENTS */
-window.addEventListener("click",onClick);
+window.addEventListener("click", onClick);
 
-window.addEventListener("mousemove",e=>{
+window.addEventListener("mousemove", e=>{
 mouse.x = (e.clientX/innerWidth)*2-1;
 mouse.y = -(e.clientY/innerHeight)*2+1;
 });
@@ -274,7 +269,7 @@ animate();
 }
 
 /* =========================
-   CLICK LOGIC (NO DUPLICATES)
+   CLICK
 ========================= */
 function onClick(){
 
@@ -301,37 +296,41 @@ let hit = raycaster.intersectObjects(dnaGroup.children);
 
 if(hit.length){
 
-let data = hit[0].object.userData;
+dnaMode = true;
 
 let panel = document.getElementById("panel");
-panel.style.display = "block";
+panel.style.display="block";
 
-panel.innerHTML = `<h2>${data.title}</h2>${data.body}`;
+let i = Math.floor(Math.random()*dnaData.length);
+panel.innerHTML = `<h2>${dnaData[i].title}</h2>${dnaData[i].body}`;
 }
 }
 
 /* =========================
-   CURSOR + LOOP
+   LOOP + CURSOR FIX
 ========================= */
 function animate(){
 
 requestAnimationFrame(animate);
 
+/* rain */
 rainGroup.children.forEach(r=>{
 r.position.y -= r.userData.speed;
 if(r.position.y < -5) r.position.y = 10;
 });
 
+/* DNA rotation */
 dnaGroup.rotation.y += 0.002;
 
+/* cursor logic */
 raycaster.setFromCamera(mouse,camera);
 let hit = raycaster.intersectObjects(dnaGroup.children);
 
 hoveringDNA = hit.length > 0;
 
-if(hoveringDNA){
+if(dnaMode || hoveringDNA){
 document.body.classList.add("dna");
-}else{
+} else {
 document.body.classList.remove("dna");
 }
 
@@ -339,10 +338,10 @@ renderer.render(scene,camera);
 }
 
 /* helpers */
-function sphere(color){
+function sphere(c){
 return new THREE.Mesh(
 new THREE.SphereGeometry(0.12,16,16),
-new THREE.MeshStandardMaterial({color})
+new THREE.MeshStandardMaterial({color:c})
 );
 }
 
